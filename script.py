@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 from tkinter import PhotoImage
 import random
 import pygame
@@ -22,7 +21,7 @@ questions = [
         ]
     },
     {
-        'question': "I’m most looking forward to…",
+        'question': "I'm most looking forward to...",
         'options': [
             ('Making lots of new friends abroad', 'impact'),
             ('Understanding new cultures', 'explorer'),
@@ -38,11 +37,11 @@ questions = [
         ]
     },
     {
-        'question': "It would be interesting to…",
+        'question': "It would be interesting to...",
         'options': [
             ('Teach and support others in learning', 'impact'),
             ('Help protect marine life on a sunny beach', 'explorer'),
-            ('Lead workshops on topics I’m passionate about', 'growth'),
+            ('Lead workshops on topics I`m passionate about', 'growth'),
         ]
     },
 ]
@@ -56,29 +55,48 @@ trait_scores = {
 # Initialize pygame mixer for sound playback
 pygame.mixer.init()
 
-# Load a sound file (make sure the sound file exists in the directory)
-click_sound = pygame.mixer.Sound("click_sound.wav")
+
+def animate_button(button, original_color=None):
+    """Handle button animation and sound effect"""
+    try:
+        click_sound = pygame.mixer.Sound("click_sound.wav")
+        click_sound.play()
+    except:
+        pass  # Continue without sound if file not found
+
+    if original_color is None:
+        original_color = button.cget("background")
+
+    button.config(
+        background="#0b411c",
+        activebackground="#0b411c",
+        foreground="white",
+        activeforeground="white"
+    )
+
+    return original_color
+
 
 class QuizApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Be A Global Volunteer Quizz")
+        self.root.title("Be A Global Volunteer Quiz")
         self.question_index = 0
-        self.result_window = None  # Store the reference to result window
+        self.result_window = None
 
-        # Frame to hold quiz content
         self.root.geometry("1200x1600")
         self.frame = tk.Frame(self.root, padx=20, pady=20)
         self.frame.pack()
 
-        # Load the image
-        self.image = PhotoImage(file="green.png")
+        # Try to load the image (with error handling)
+        try:
+            self.image = PhotoImage(file="green.png")
+            self.image_label = tk.Label(self.frame, image=self.image)
+            self.image_label.pack(pady=10)
+        except:
+            pass  # Continue without image if it fails to load
 
-        # Display the image
-        self.image_label = tk.Label(self.frame, image=self.image)
-        self.image_label.pack(pady=10)
-
-        self.question_label = tk.Label(self.frame, text="", font=("Arial", 16, "bold"), wraplength=800)
+        self.question_label = tk.Label(self.frame, text="", font=("Arial", 16, "bold"), wraplength=600)
         self.question_label.pack(pady=30)
 
         self.buttons = []
@@ -86,13 +104,12 @@ class QuizApp:
             btn = tk.Button(
                 self.frame,
                 text="",
-                font=("Arial", 14),
-                wraplength=600,  # wraps text
-                justify="center",  # aligns text
-                anchor="center",  # places text
-                height=3,  # ensures consistent height
-                width=40,  # same visual width
-                command=lambda i=i: self.select_option(i)  # bind the correct function
+                font=("Arial", 12),
+                wraplength=500,
+                justify="center",
+                height=3,
+                width=40,
+                command=lambda i=i: self.select_option(i)
             )
             btn.pack(pady=5)
             self.buttons.append(btn)
@@ -115,33 +132,15 @@ class QuizApp:
             )
 
     def select_option(self, index):
-        # Check if result window is open, if so, prevent click
         if self.result_window:
             return
 
         btn = self.buttons[index]
-        original_color = btn.cget("background")
-
-        # Play the click sound when a button is clicked
-        click_sound.play()
-
-        btn.config(
-            background="#0b411c",  # the raw moment colour
-            activebackground="#0b411c",
-            foreground="white",
-            activeforeground="white"
-        )
+        original_color = animate_button(btn)
 
         self.root.after(400, lambda: self.process_selection(index, btn, original_color))
 
     def process_selection(self, index, btn, original_color):
-        btn.config(
-            background="#0b411c",  # the raw moment colour
-            activebackground="#0b411c",
-            foreground="white",
-            activeforeground="white"
-        )
-
         trait = questions[self.question_index]['options'][index][1]
         trait_scores[trait] += 1
         self.question_index += 1
@@ -155,7 +154,6 @@ class QuizApp:
         max_score = max(trait_scores.values())
         top_traits = [trait for trait, score in trait_scores.items() if score == max_score]
 
-        # Final project assignments
         recommendations = {
             'growth': [('Fingerprint', 'Brazil'), ('Heartbeat', 'Morocco')],
             'explorer': [('Aquatica', 'Tunisia'), ('Skill Up!', 'Egypt')],
@@ -173,72 +171,74 @@ class QuizApp:
 
         title = trait_titles[chosen_trait]
 
-        # Create a new top-level window
         self.result_window = tk.Toplevel(self.root)
         self.result_window.title("Your Matched Profile")
-        self.result_window.geometry("800x600")  # Set a fixed, larger size
+        self.result_window.geometry("600x400")
 
         result_label = tk.Label(
             self.result_window,
             text=f"{title}!\n\nProject: {project}\nCountry: {country}",
-            font=("Arial", 16, "bold"),
-            wraplength=600,
+            font=("Arial", 14, "bold"),
+            wraplength=500,
             justify="center",
             padx=20,
             pady=20
         )
         result_label.pack(expand=True)
 
-        # Modify the close button to reset the quiz
         close_button = tk.Button(
             self.result_window,
             text="Start Over",
             command=self.reset_quiz,
-            font=("Arial", 12)
+            font=("Arial", 12),
+            height=2,
+            width=15,
+            background="#f0f0f0",
+            activebackground="white",
+            foreground="black"
         )
-        close_button.pack(pady=10)
+        close_button.pack(pady=20)
 
-        # Disable the main frame while the result window is open
         self.disable_frame()
 
     def reset_quiz(self):
-        # Destroy the result window and clear the reference
+        if self.result_window:
+            for child in self.result_window.winfo_children():
+                if isinstance(child, tk.Button) and child.cget("text") == "Start Over":
+                    animate_button(child)
+                    break
+
+        self.root.after(400, self._perform_reset)
+
+    def _perform_reset(self):
         if self.result_window:
             self.result_window.destroy()
-            self.result_window = None  # This is the critical fix
+            self.result_window = None
 
-        # Reset all the necessary variables
         global trait_scores
         trait_scores = {'growth': 0, 'explorer': 0, 'impact': 0}
         self.question_index = 0
 
-        # Clear all the buttons and the question label
-        for button in self.buttons:
-            button.config(text="",
-                          background="#f0f0f0",
-                          foreground="black",
-                          command=lambda i=self.buttons.index(button): self.select_option(i))
+        for i, button in enumerate(self.buttons):
+            button.config(
+                text="",
+                background="#f0f0f0",
+                foreground="black",
+                command=lambda i=i: self.select_option(i)
+            )
 
-        # Re-enable the main frame
         self.enable_frame()
-
-        # Show the first question again
         self.show_question()
 
     def disable_frame(self):
-        # Disable all buttons and widgets on the main frame
         for button in self.buttons:
             button.config(state=tk.DISABLED)
-        self.question_label.config(state=tk.DISABLED)
 
     def enable_frame(self):
-        # Re-enable all buttons and widgets on the main frame
         for button in self.buttons:
             button.config(state=tk.NORMAL)
-        self.question_label.config(state=tk.NORMAL)
 
 
-# LAUNCH QUIZZ
 if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
