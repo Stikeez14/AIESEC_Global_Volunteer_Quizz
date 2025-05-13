@@ -3,7 +3,6 @@ from tkinter import messagebox
 from tkinter import PhotoImage
 import random
 
-
 questions = [
     {
         'question': "What motivates you to join an exchange program?",
@@ -47,13 +46,11 @@ questions = [
     },
 ]
 
-
 trait_scores = {
     'growth': 0,
     'explorer': 0,
     'impact': 0
 }
-
 
 class QuizApp:
     def __init__(self, root):
@@ -86,7 +83,7 @@ class QuizApp:
                 anchor="center",  # places text
                 height=3,  # ensures consistent height
                 width=40,  # same visual width
-                command=lambda i=i: self.select_option(i)
+                command=lambda  i=i: self.select_option(i)
             )
             btn.pack(pady=5)
             self.buttons.append(btn)
@@ -97,10 +94,40 @@ class QuizApp:
         q = questions[self.question_index]
         self.question_label.config(text=q['question'])
 
+        default_bg = "#f0f0f0"
+
         for i, (text, _) in enumerate(q['options']):
-            self.buttons[i].config(text=text)
+            self.buttons[i].config(
+                text=text,
+                background=default_bg,
+                activebackground="white",
+                foreground="black",
+                activeforeground='black'
+            )
 
     def select_option(self, index):
+        btn = self.buttons[index]
+        original_color = btn.cget("background")
+
+        # Change button color to green with white text
+        btn.config(
+            background="#0b411c",
+            activebackground="#0b411c",
+            foreground="white",
+            activeforeground="white"  # Ensures the text remains white while the button is pressed
+        )
+
+        self.root.after(400, lambda: self.process_selection(index, btn, original_color))
+
+    def process_selection(self, index, btn, original_color):
+        # Ensure the button stays green with white text after selection
+        btn.config(
+            background="#0b411c",
+            activebackground="#0b411c",
+            foreground="white",
+            activeforeground="white"  # Ensure text stays white while the button is active
+        )
+
         trait = questions[self.question_index]['options'][index][1]
         trait_scores[trait] += 1
         self.question_index += 1
@@ -131,9 +158,25 @@ class QuizApp:
         }
 
         title = trait_titles[chosen_trait]
-        messagebox.showinfo("Your Matched Profile", f"{title}!\n\nProject: {project}\nCountry: {country}")
-        self.root.quit()
 
+        # Create a new top-level window
+        result_window = tk.Toplevel(self.root)
+        result_window.title("Your Matched Profile")
+        result_window.geometry("800x600")  # Set a fixed, larger size
+
+        result_label = tk.Label(
+            result_window,
+            text=f"{title}!\n\nProject: {project}\nCountry: {country}",
+            font=("Arial", 16),
+            wraplength=600,
+            justify="center",
+            padx=20,
+            pady=20
+        )
+        result_label.pack(expand=True)
+
+        close_button = tk.Button(result_window, text="Close", command=self.root.quit, font=("Arial", 12))
+        close_button.pack(pady=10)
 
 # LAUNCH QUIZZ
 if __name__ == "__main__":
