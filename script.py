@@ -52,7 +52,7 @@ trait_scores = {
     'impact': 0
 }
 
-# Initialize pygame mixer for sound playback
+
 pygame.mixer.init()
 
 
