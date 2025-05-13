@@ -202,9 +202,10 @@ class QuizApp:
         self.disable_frame()
 
     def reset_quiz(self):
-        # Destroy the result window
+        # Destroy the result window and clear the reference
         if self.result_window:
             self.result_window.destroy()
+            self.result_window = None  # This is the critical fix
 
         # Reset all the necessary variables
         global trait_scores
@@ -213,14 +214,13 @@ class QuizApp:
 
         # Clear all the buttons and the question label
         for button in self.buttons:
-            button.config(text="", background="#f0f0f0", foreground="black")
+            button.config(text="",
+                          background="#f0f0f0",
+                          foreground="black",
+                          command=lambda i=self.buttons.index(button): self.select_option(i))
 
         # Re-enable the main frame
         self.enable_frame()
-
-        # Rebind the button events to make them functional again
-        for i in range(3):
-            self.buttons[i].config(command=lambda i=i: self.select_option(i))
 
         # Show the first question again
         self.show_question()
