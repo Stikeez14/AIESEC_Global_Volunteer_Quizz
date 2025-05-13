@@ -1,51 +1,59 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import PhotoImage
+import random
+
 
 questions = [
     {
         'question': "What motivates you to join an exchange program?",
         'options': [
-            ('Personal growth and development', 'development'),
+            ('Personal growth and development', 'growth'),
             ('Making a positive impact in local communities', 'impact'),
-            ('Exploring new places and cultures', 'traveler'),
+            ('Exploring new places and cultures', 'explorer'),
         ]
     },
     {
         'question': "Which experience excites you the most?",
         'options': [
-            ('Which experience excites you the most?', 'adventurous'),
-            ('Riding a tuk-tuk through bustling local streets', 'creative'),
-            ('Tasting fresh mangoes straight from the market', 'analytical'),
+            ('Starting the day with a delicious Turkish breakfast', 'explorer'),
+            ('Riding a tuk-tuk through bustling local streets', 'explorer'),
+            ('Tasting fresh mangoes straight from the market', 'growth'),
         ]
     },
-{
+    {
         'question': "I’m most looking forward to…",
         'options': [
             ('Making lots of new friends abroad', 'impact'),
-            ('Understanding new cultures', 'traveler'),
-            ('Having a lot of fun along the way', 'development'),
+            ('Understanding new cultures', 'explorer'),
+            ('Having a lot of fun along the way', 'growth'),
         ]
     },
-{
+    {
         'question': "What concerns you the most?",
         'options': [
             ('High transportation costs', 'impact'),
-            ('Struggling to adapt to a new environment', 'traveler'),
-            ('Not enjoying the local food', 'development'),
+            ('Struggling to adapt to a new environment', 'explorer'),
+            ('Not enjoying the local food', 'growth'),
         ]
     },
-{
+    {
         'question': "It would be interesting to…",
         'options': [
             ('Teach and support others in learning', 'impact'),
-            ('Help protect marine life on a sunny beach', 'traveler'),
-            ('Lead workshops on topics I’m passionate about', 'development'),
+            ('Help protect marine life on a sunny beach', 'explorer'),
+            ('Lead workshops on topics I’m passionate about', 'growth'),
         ]
     },
 ]
 
-trait_scores = {'traveler': 0, 'impact': 0, 'development': 0}
+
+trait_scores = {
+    'growth': 0,
+    'explorer': 0,
+    'impact': 0
+}
+
 
 class QuizApp:
     def __init__(self, root):
@@ -68,8 +76,18 @@ class QuizApp:
         self.question_label.pack(pady=10)
 
         self.buttons = []
-        for i in range(4):
-            btn = tk.Button(self.frame, text="", font=("Arial", 14), width=30, command=lambda i=i: self.select_option(i))
+        for i in range(3):
+            btn = tk.Button(
+                self.frame,
+                text="",
+                font=("Arial", 14),
+                wraplength=600,  # wraps text
+                justify="center",  # aligns text
+                anchor="center",  # places text
+                height=3,  # ensures consistent height
+                width=40,  # same visual width
+                command=lambda i=i: self.select_option(i)
+            )
             btn.pack(pady=5)
             self.buttons.append(btn)
 
@@ -93,23 +111,31 @@ class QuizApp:
             self.show_result()
 
     def show_result(self):
-        dominant_trait = max(trait_scores, key=trait_scores.get)
-        if dominant_trait == 'adventurous':
-            project, country = "Volunteer Abroad Project", "New Zealand"
-        elif dominant_trait == 'creative':
-            project, country = "Art Residency", "France"
-        elif dominant_trait == 'analytical':
-            project, country = "Tech Internship", "Germany"
-        elif dominant_trait == 'social':
-            project, country = "NGO Project", "Brazil"
-        else:
-            project, country = "General Project", "USA"
+        max_score = max(trait_scores.values())
+        top_traits = [trait for trait, score in trait_scores.items() if score == max_score]
 
-        messagebox.showinfo("Your Result", f"Project: {project}\nCountry: {country}")
+        # Final project assignments
+        recommendations = {
+            'growth': [('Fingerprint', 'Brazil'), ('Heartbeat', 'Morocco')],
+            'explorer': [('Aquatica', 'Tunisia'), ('Skill Up!', 'Egypt')],
+            'impact': [('Global Classroom', 'Turkiye'), ('Happy Bus', 'India')],
+        }
+
+        chosen_trait = random.choice(top_traits)
+        project, country = random.choice(recommendations[chosen_trait])
+
+        trait_titles = {
+            'growth': "🌱 Growth Seeker",
+            'explorer': "🌍 Culture Explorer",
+            'impact': "🤝 Impact Maker"
+        }
+
+        title = trait_titles[chosen_trait]
+        messagebox.showinfo("Your Matched Profile", f"{title}!\n\nProject: {project}\nCountry: {country}")
         self.root.quit()
 
 
-# Launch app
+# LAUNCH QUIZZ
 if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
