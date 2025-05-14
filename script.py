@@ -107,8 +107,9 @@ class QuizApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Be A Global Volunteer Quiz")
+        trait_scores = {'growth': 0, 'explorer': 0, 'impact': 0}
 
-        # Full-screen setup
+    # Full-screen setup
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         self.root.geometry(f"{screen_width}x{screen_height}+0+0")
@@ -250,9 +251,7 @@ class QuizApp:
         max_score = max(trait_scores.values())
         top_traits = [trait for trait, score in trait_scores.items() if score == max_score]
         chosen_trait = random.choice(top_traits)
-
-        # Create the enhanced result window
-        self.result_window = ResultWindow(self.root, chosen_trait)
+        self.root.result_window = ResultWindow(self.root, chosen_trait)
 
     def return_to_menu(self):
         """Return to the main menu"""
@@ -264,6 +263,28 @@ class QuizApp:
         """Start the quiz"""
 
         QuizApp(self.root)
+
+    def reset_quiz(self):
+        """Reset the quiz to start immediately"""
+        # Reset scores and question index
+        self.trait_scores = {'growth': 0, 'explorer': 0, 'impact': 0}
+        self.question_index = 0
+
+        # Close result window if it exists
+        if hasattr(self, 'result_window') and self.result_window:
+            self.result_window.window.destroy()
+
+        # Show first question immediately
+
+        self.start_quiz()
+
+    def return_to_menu(self):
+        """Return to main menu"""
+        # Destroy all quiz widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
+        # Recreate main menu
+        MainMenu(self.root)
 
 
 class MainMenu:
@@ -521,13 +542,15 @@ class ResultWindow:
     def restart_quiz(self):
         """Restart the quiz"""
         self.window.destroy()
-        self.parent.reset_scores()
-        self.parent.start_quiz()
+        #self.quiz_app.reset_quiz()
+        print("Restarting the quiz")
+        self.parent.reset_quiz()
 
     def return_to_menu(self):
         """Return to main menu"""
         self.window.destroy()
         self.parent.return_to_menu()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
