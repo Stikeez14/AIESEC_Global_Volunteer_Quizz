@@ -2,6 +2,7 @@ import tkinter as tk
 import random
 import pygame
 from PIL import Image, ImageTk
+from pathlib import Path
 
 # Initialize pygame mixer
 pygame.mixer.init()
@@ -46,27 +47,28 @@ questions = [
             ('Teach and support others in learning', 'impact'),
             ('Help protect marine life on a sunny beach', 'explorer'),
             ('Lead workshops on topics Im passionate about', 'growth'),
-            ]
-            },
-            ]
+        ]
+    },
+]
 
 trait_scores = {
-            'growth': 0,
-            'explorer': 0,
-            'impact': 0
-    }
+    'growth': 0,
+    'explorer': 0,
+    'impact': 0
+}
 recommendations = {
     'growth': [
-        {'name': 'Fingerprint', 'country': 'Brazil', 'image': 'brazil_bg.jpg', 'logo': 'fingerprint_logo.jpeg'},
-        {'name': 'Heartbeat', 'country': 'Morocco', 'image': 'morocco_bg.jpg', 'logo': 'heartbeat_logo.jpeg'}
+        {'name': 'Fingerprint', 'country': 'Brazil', 'image': 'images/india.jpg',
+         'logo': 'images/fingerprint_logo.jpeg'},
+        {'name': 'Heartbeat', 'country': 'Morocco', 'image': 'images/india.jpg', 'logo': 'images/heartbeat_logo.jpeg'}
     ],
     'explorer': [
-        {'name': 'Aquatica', 'country': 'Tunisia', 'image': 'tunisia_bg.jpg', 'logo': 'aquatica_logo.jpeg'},
-        {'name': 'Skill Up!', 'country': 'Egypt', 'image': 'egypt_bg.jpg', 'logo': 'skillup_logo.jpeg'}
+        {'name': 'Aquatica', 'country': 'Tunisia', 'image': 'images/india.jpg', 'logo': 'images/aquatica_logo.jpeg'},
+        {'name': 'Skill Up!', 'country': 'Egypt', 'image': 'images/india.jpg', 'logo': 'images/skillup_logo.jpeg'}
     ],
     'impact': [
-        {'name': 'Global Classroom', 'country': 'Turkiye', 'image': 'turkey_bg.jpg', 'logo': 'globalclass_logo.jpeg'},
-        {'name': 'Happy Bus', 'country': 'India', 'image': 'india_bg.jpg', 'logo': 'happybus_logo.jpeg'}
+        {'name': 'Global Classroom', 'country': 'Turkiye', 'image': 'images/india.jpg', 'logo': 'images/glologo.jpeg'},
+        {'name': 'Happy Bus', 'country': 'India', 'image': 'images/india.jpg', 'logo': 'images/happybus_logo.jpeg'}
     ]
 }
 trait_titles = {
@@ -74,6 +76,7 @@ trait_titles = {
     'explorer': "🌍 Culture Explorer",
     'impact': "🤝 Impact Maker"
 }
+
 
 def animate_button(button, original_color=None):
     """Handle button animation and sound effect"""
@@ -98,6 +101,7 @@ def animate_button(button, original_color=None):
         foreground="black",
         activeforeground="black"
     ))
+
 
 class QuizApp:
     def __init__(self, root):
@@ -159,8 +163,8 @@ class QuizApp:
         self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
 
         # Logo
-        self.canvas.create_image(self.root.winfo_screenwidth()/2,
-                                 self.root.winfo_screenheight()/5,
+        self.canvas.create_image(self.root.winfo_screenwidth() / 2,
+                                 self.root.winfo_screenheight() / 5,
                                  image=self.logo_image, anchor="center")
 
         # Question label
@@ -174,22 +178,22 @@ class QuizApp:
             justify="center"
         )
         self.canvas.create_window(
-            self.root.winfo_screenwidth()/2,
-            self.root.winfo_screenheight()*0.4,
+            self.root.winfo_screenwidth() / 2,
+            self.root.winfo_screenheight() * 0.4,
             window=self.question_label,
             anchor="center"
         )
 
         # Answer buttons
         self.buttons = []
-        button_positions = [0.5, 0.65,0.8]  # Relative y positions
+        button_positions = [0.5, 0.65, 0.8]  # Relative y positions
 
         for i in range(3):
             btn = tk.Button(
                 self.canvas,
                 text="",
                 font=("Raleway", 17, "italic"),
-                wraplength=self.root.winfo_screenwidth() ,
+                wraplength=self.root.winfo_screenwidth(),
                 justify="center",
                 width=40,
                 height=4,
@@ -198,8 +202,8 @@ class QuizApp:
                 command=lambda i=i: self.select_option(i)
             )
             self.canvas.create_window(
-                self.root.winfo_screenwidth()/2,
-                self.root.winfo_screenheight()*button_positions[i],
+                self.root.winfo_screenwidth() / 2,
+                self.root.winfo_screenheight() * button_positions[i],
                 window=btn,
                 anchor="center"
             )
@@ -249,14 +253,18 @@ class QuizApp:
 
         # Create the enhanced result window
         self.result_window = ResultWindow(self.root, chosen_trait)
+
     def return_to_menu(self):
         """Return to the main menu"""
         if self.result_window:
             self.result_window.destroy()
         MainMenu(self.root)
+
     def start_quiz(self):
         """Start the quiz"""
+
         QuizApp(self.root)
+
 
 class MainMenu:
     def __init__(self, root):
@@ -306,15 +314,15 @@ class MainMenu:
         self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
 
         # Logo
-        self.canvas.create_image(self.root.winfo_screenwidth()/2,
-                                 self.root.winfo_screenheight()/4,
+        self.canvas.create_image(self.root.winfo_screenwidth() / 2,
+                                 self.root.winfo_screenheight() / 4,
                                  image=self.logo_image, anchor="center")
 
         # Menu buttons
         button_frame = tk.Frame(self.canvas, bg="")
         self.canvas.create_window(
-            self.root.winfo_screenwidth()/2,
-            self.root.winfo_screenheight()*0.6,
+            self.root.winfo_screenwidth() / 2,
+            self.root.winfo_screenheight() * 0.6,
             window=button_frame,
             anchor="center"
         )
@@ -397,7 +405,6 @@ class MainMenu:
         close_btn.bind("<Button-1>", lambda e, b=close_btn: animate_button(b))
 
 
-
 class ResultWindow:
     def __init__(self, parent, chosen_trait):
         self.parent = parent
@@ -455,37 +462,37 @@ class ResultWindow:
         # Add background image
         self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
 
-        # Add semi-transparent overlay for better text visibility
-        self.canvas.create_rectangle(0, 0, 800, 600, fill="black", stipple="gray25", alpha=0.5)
+        # Create a semi-transparent overlay using a rectangle with stipple pattern
+        self.canvas.create_rectangle(0, 0, 800, 600, fill="black", stipple="gray25")
 
         # Add project logo in center
         if self.logo_image:
             self.canvas.create_image(400, 200, image=self.logo_image, anchor="center")
 
-        # Create a frame for the text to maintain original text appearance
-        text_frame = tk.Frame(self.canvas, bg="white", bd=2, relief="ridge")
-        self.canvas.create_window(400, 350, window=text_frame, anchor="center")
+        # Create a white frame for the text
+        text_frame = tk.Frame(self.window, bg="white", bd=2, relief="ridge")
+        text_frame.place(relx=0.5, rely=0.6, anchor="center", width=600, height=200)
 
-        # Add result text - maintaining your original text style
+        # Add result text
         title = trait_titles[self.chosen_trait]
         result_text = f"{title}!\n\nProject: {self.project['name']}\nCountry: {self.project['country']}"
 
         result_label = tk.Label(
             text_frame,
             text=result_text,
-            font=("Raleway", 14, "bold"),
+            font=("Raleway", 16, "bold"),
             fg="black",
             bg="white",
-            wraplength=500,
+            wraplength=550,
             justify="center",
             padx=20,
             pady=20
         )
-        result_label.pack()
+        result_label.pack(expand=True)
 
         # Add buttons
-        button_frame = tk.Frame(self.canvas, bg="")
-        self.canvas.create_window(400, 500, window=button_frame, anchor="center")
+        button_frame = tk.Frame(self.window, bg="")
+        button_frame.place(relx=0.5, rely=0.85, anchor="center")
 
         restart_btn = tk.Button(
             button_frame,
@@ -514,24 +521,13 @@ class ResultWindow:
     def restart_quiz(self):
         """Restart the quiz"""
         self.window.destroy()
-        self.parent.reset_quiz()
+        self.parent.reset_scores()
+        self.parent.start_quiz()
 
     def return_to_menu(self):
         """Return to main menu"""
         self.window.destroy()
         self.parent.return_to_menu()
-
-    # [Keep all other classes (QuizApp, MainMenu) and functions unchanged,
-    # but replace the show_result method in QuizApp with:]
-
-    def show_result(self):
-        """Display the quiz results"""
-        max_score = max(trait_scores.values())
-        top_traits = [trait for trait, score in trait_scores.items() if score == max_score]
-        chosen_trait = random.choice(top_traits)
-
-        # Create the enhanced result window
-        self.result_window = ResultWindow(self, chosen_trait)
 
 if __name__ == "__main__":
     root = tk.Tk()
