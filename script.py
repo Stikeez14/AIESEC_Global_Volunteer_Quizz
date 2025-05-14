@@ -106,6 +106,7 @@ def animate_button(button, original_color=None):
 class QuizApp:
     def __init__(self, root):
         self.root = root
+        self.root.quiz_app = self
         self.root.title("Be A Global Volunteer Quiz")
         trait_scores = {'growth': 0, 'explorer': 0, 'impact': 0}
 
@@ -251,7 +252,7 @@ class QuizApp:
         max_score = max(trait_scores.values())
         top_traits = [trait for trait, score in trait_scores.items() if score == max_score]
         chosen_trait = random.choice(top_traits)
-        self.root.result_window = ResultWindow(self.root, chosen_trait)
+        self.result_window = ResultWindow(self.root, chosen_trait)
 
     def return_to_menu(self):
         """Return to the main menu"""
@@ -266,17 +267,17 @@ class QuizApp:
 
     def reset_quiz(self):
         """Reset the quiz to start immediately"""
-        # Reset scores and question index
-        self.trait_scores = {'growth': 0, 'explorer': 0, 'impact': 0}
+        # Reset scores
+        global trait_scores
+        trait_scores = {'growth': 0, 'explorer': 0, 'impact': 0}
         self.question_index = 0
 
         # Close result window if it exists
         if hasattr(self, 'result_window') and self.result_window:
             self.result_window.window.destroy()
 
-        # Show first question immediately
-
-        self.start_quiz()
+        # Show first question
+        self.show_question()
 
     def return_to_menu(self):
         """Return to main menu"""
@@ -542,14 +543,14 @@ class ResultWindow:
     def restart_quiz(self):
         """Restart the quiz"""
         self.window.destroy()
-        #self.quiz_app.reset_quiz()
-        print("Restarting the quiz")
-        self.parent.reset_quiz()
+        if hasattr(self.parent, 'quiz_app'):
+            self.parent.quiz_app.reset_quiz()
 
     def return_to_menu(self):
         """Return to main menu"""
         self.window.destroy()
-        self.parent.return_to_menu()
+        if hasattr(self.parent, 'quiz_app'):
+            self.parent.quiz_app.return_to_menu()
 
 
 if __name__ == "__main__":
