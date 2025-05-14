@@ -733,7 +733,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.music_player = music_player  # Make accessible everywhere
-
+    root.attributes('-fullscreen', True)  # True for fullscreen, False to exit
     def check_pygame_events():
         for event in pygame.event.get():
             music_player.check_event(event)
