@@ -1,11 +1,30 @@
+import os
 import tkinter as tk
 import random
 import pygame
 from PIL import Image, ImageTk
 from pathlib import Path
 
+from pygame import mixer
+
 # Initialize pygame mixer
 pygame.mixer.init()
+SOUNDTRACK = {
+    'menu_playlist': [
+        'music/song1.mp3',
+        'music/song2.mp3',
+        'music/song3.mp3'
+    ],
+    'quiz_playlist': [
+        'music/quiz1.mp3',
+        'music/quiz2.mp3'
+    ],
+    'result_playlist': [
+        'music/result1.mp3',
+        'music/result2.mp3'
+    ],
+    'button_click': 'sounds/click.wav'
+}
 
 # Quiz questions and data
 questions = [
@@ -81,7 +100,7 @@ trait_titles = {
 def animate_button(button, original_color=None):
     """Handle button animation and sound effect"""
     try:
-        click_sound = pygame.mixer.Sound("click_sound.wav")
+        click_sound = pygame.mixer.Sound("music/click_sound.wav")
         click_sound.play()
     except:
         pass  # Continue without sound if file not found
@@ -110,7 +129,7 @@ class QuizApp:
         self.root.title("Be A Global Volunteer Quiz")
         trait_scores = {'growth': 0, 'explorer': 0, 'impact': 0}
 
-    # Full-screen setup
+        # Full-screen setup
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         self.root.geometry(f"{screen_width}x{screen_height}+0+0")
@@ -303,6 +322,7 @@ class MainMenu:
 
         # Setup UI
         self.setup_ui()
+        self.root.music_player.load_playlist('menu_playlist')
 
     def load_images(self):
         """Load and resize images"""
@@ -369,35 +389,64 @@ class MainMenu:
                 command=command
             )
             btn.pack(pady=10)
-            btn.bind("<Button-1>", lambda e, b=btn: animate_button(b))
+
+
 
     def start_quiz(self):
         """Start the quiz"""
         QuizApp(self.root)
 
     def show_settings(self):
-        """Show settings window"""
         settings_window = tk.Toplevel(self.root)
-        settings_window.title("Settings")
-        settings_window.geometry("400x300")
+        settings_window.title("Music Settings")
+        settings_window.geometry("450x400")  # Slightly larger for all controls
         settings_window.resizable(False, False)
 
-        # Center the settings window
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        x = (screen_width - 400) // 2
-        y = (screen_height - 300) // 2
-        settings_window.geometry(f"400x300+{x}+{y}")
+        # Make settings window modal
+        settings_window.grab_set()
 
-        tk.Label(
-            settings_window,
-            text="Settings",
-            font=("Raleway", 18, "bold")
-        ).pack(pady=20)
+        # Music Controls Frame
+        controls_frame = tk.Frame(settings_window, padx=20, pady=10)
+        controls_frame.pack(fill="x")
 
-        # Volume control
-        volume_frame = tk.Frame(settings_window)
-        volume_frame.pack(pady=10)
+        # Now Playing Label
+        self.now_playing_label = tk.Label(
+            controls_frame,
+            text=self.get_current_track_name(),
+            font=("Raleway", 12, "italic"),
+            wraplength=400
+        )
+        self.now_playing_label.pack(pady=5)
+
+        # Playback Buttons
+        btn_frame = tk.Frame(controls_frame)
+        btn_frame.pack(pady=10)
+
+        tk.Button(
+            btn_frame,
+            text="⏮ Previous",
+            command=self.previous_track,
+            width=10
+        ).pack(side="left", padx=5)
+
+        self.play_pause_btn = tk.Button(
+            btn_frame,
+            text="⏸ Pause" if mixer.music.get_busy() else "▶ Play",
+            command=self.toggle_playback,
+            width=10
+        )
+        self.play_pause_btn.pack(side="left", padx=5)
+
+        tk.Button(
+            btn_frame,
+            text="⏭ Next",
+            command=self.next_track,
+            width=10
+        ).pack(side="left", padx=5)
+
+        # Volume Control Frame
+        volume_frame = tk.Frame(controls_frame)
+        volume_frame.pack(fill="x", pady=10)
 
         tk.Label(
             volume_frame,
@@ -405,18 +454,29 @@ class MainMenu:
             font=("Raleway", 12)
         ).pack(side="left")
 
-        volume_slider = tk.Scale(
+        self.volume_slider = tk.Scale(
             volume_frame,
             from_=0,
             to=100,
-            orient="horizontal"
+            orient="horizontal",
+            command=self.update_volume,
+            length=300
         )
-        volume_slider.pack(side="left", padx=10)
+        self.volume_slider.set(int(self.root.music_player.volume * 100))
+        self.volume_slider.pack(side="left", padx=10)
 
-        # Close button
+        self.mute_btn = tk.Button(
+            volume_frame,
+            text="🔇 Mute" if self.root.music_player.volume == 0 else "🔊 Unmute",
+            command=self.toggle_mute,
+            width=8
+        )
+        self.mute_btn.pack(side="left", padx=5)
+
+        # Close Button
         close_btn = tk.Button(
             settings_window,
-            text="Close",
+            text="Close Settings",
             command=settings_window.destroy,
             font=("Raleway", 12),
             width=15,
@@ -425,7 +485,74 @@ class MainMenu:
         )
         close_btn.pack(pady=20)
         close_btn.bind("<Button-1>", lambda e, b=close_btn: animate_button(b))
+        def update_volume(self, val):
+            """Update volume from slider"""
+            volume = float(val) / 100
+            self.root.music_player.set_volume(volume)
+            # Update mute button state
+            self.mute_btn.config(
+                text="🔇 Mute" if volume == 0 else "🔊 Unmute"
+            )
 
+        def toggle_mute(self):
+            """Toggle mute state"""
+            if self.root.music_player.volume > 0:
+                self.saved_volume = self.root.music_player.volume
+                self.root.music_player.set_volume(0)
+                self.volume_slider.set(0)
+                self.mute_btn.config(text="🔇 Mute")
+            else:
+                self.root.music_player.set_volume(self.saved_volume)
+                self.volume_slider.set(int(self.saved_volume * 100))
+                self.mute_btn.config(text="🔊 Unmute")
+
+    def get_current_track_name(self):
+        """Get formatted current track name"""
+        player = self.root.music_player
+        if player.current_playlist:
+            filename = player.current_playlist[player.current_track_index]
+            name = os.path.splitext(os.path.basename(filename))[0]
+            return f"Now Playing: {name}"
+        return "No track playing"
+
+    def toggle_playback(self):
+        """Toggle between play/pause"""
+        if mixer.music.get_busy():
+            mixer.music.pause()
+            self.play_pause_btn.config(text="▶ Play")
+        else:
+            mixer.music.unpause()
+            self.play_pause_btn.config(text="⏸ Pause")
+
+    def next_track(self):
+        """Skip to next track"""
+        self.root.music_player.next_track()
+        self.now_playing_label.config(text=self.get_current_track_name())
+
+    def previous_track(self):
+        """Go to previous track"""
+        player = self.root.music_player
+        player.current_track_index = (player.current_track_index - 1) % len(player.current_playlist)
+        player.play_current_track()
+        self.now_playing_label.config(text=self.get_current_track_name())
+
+    def update_volume(self, val):
+        """Update volume from slider"""
+        volume = float(val) / 100
+        self.root.music_player.set_volume(volume)
+        self.mute_btn.config(text="🔇 Mute" if volume == 0 else "🔊 Unmute")
+
+    def toggle_mute(self):
+        """Toggle mute state"""
+        if self.root.music_player.volume > 0:
+            self.saved_volume = self.root.music_player.volume
+            self.root.music_player.set_volume(0)
+            self.volume_slider.set(0)
+            self.mute_btn.config(text="🔇 Mute")
+        else:
+            self.root.music_player.set_volume(self.saved_volume)
+            self.volume_slider.set(int(self.saved_volume * 100))
+            self.mute_btn.config(text="🔊 Unmute")
 
 class ResultWindow:
     def __init__(self, parent, chosen_trait):
@@ -553,7 +680,65 @@ class ResultWindow:
             self.parent.quiz_app.return_to_menu()
 
 
+class MusicPlayer:
+    def __init__(self):
+        self.current_playlist = []
+        self.current_track_index = 0
+        self.current_section = None
+        self.volume = 0.5  # Default volume (50%)
+        mixer.music.set_endevent(pygame.USEREVENT)
+        mixer.music.set_volume(self.volume)
+
+    def load_playlist(self, playlist_name, force_restart=False):
+        """Load a new playlist only if different from current"""
+        if force_restart or playlist_name != self.current_section:
+            self.current_playlist = SOUNDTRACK.get(playlist_name, [])
+            self.current_track_index = 0
+            self.current_section = playlist_name
+            if self.current_playlist:
+                self.play_current_track()
+
+    def set_volume(self, volume):
+        """Set volume (0.0 to 1.0)"""
+        self.volume = max(0.0, min(1.0, volume))  # Clamp between 0-1
+        mixer.music.set_volume(self.volume)
+
+    def play_current_track(self):
+        """Play the current track in the playlist"""
+        if self.current_playlist:
+            try:
+                mixer.music.load(self.current_playlist[self.current_track_index])
+                mixer.music.set_volume(0.5)
+                mixer.music.play()
+            except Exception as e:
+                print(f"Error playing track: {e}")
+                self.next_track()
+
+    def next_track(self):
+        """Move to next track in playlist"""
+        if self.current_playlist:
+            self.current_track_index = (self.current_track_index + 1) % len(self.current_playlist)
+            self.play_current_track()
+
+    def check_event(self, event):
+        """Handle music end events"""
+        if event.type == pygame.USEREVENT:
+            self.next_track()
+
+
 if __name__ == "__main__":
+    pygame.init()
+    mixer.init()
+    music_player = MusicPlayer()
+
     root = tk.Tk()
+    root.music_player = music_player  # Make accessible everywhere
+
+    def check_pygame_events():
+        for event in pygame.event.get():
+            music_player.check_event(event)
+        root.after(100, check_pygame_events)  # Check every 100ms
+
+    root.after(100, check_pygame_events)
     menu = MainMenu(root)
     root.mainloop()
