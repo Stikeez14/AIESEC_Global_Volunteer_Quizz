@@ -330,7 +330,7 @@ class MainMenu:
         screen_height = self.root.winfo_screenheight()
 
         # Background image
-        original_bg = Image.open("main_menu_background")
+        original_bg = Image.open("main_menu_background.png")
         resized_bg = original_bg.resize((screen_width, screen_height))
         self.bg_image = ImageTk.PhotoImage(resized_bg)
 
