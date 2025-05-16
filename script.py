@@ -77,17 +77,17 @@ trait_scores = {
 }
 recommendations = {
     'growth': [
-        {'name': 'Fingerprint', 'country': 'Brazil', 'image': 'images/india.jpg',
+        {'name': 'Fingerprint', 'country': 'Brazil', 'image': 'images/brazil.jpg',
          'logo': 'images/fingerprint_logo.jpeg'},
-        {'name': 'Heartbeat', 'country': 'Morocco', 'image': 'images/india.jpg', 'logo': 'images/heartbeat_logo.jpeg'}
+        {'name': 'Heartbeat', 'country': 'Morocco', 'image': 'images/morocco.jpg', 'logo': 'images/heartbeat_logo.jpeg'}
     ],
     'explorer': [
-        {'name': 'Aquatica', 'country': 'Tunisia', 'image': 'images/india.jpg', 'logo': 'images/aquatica_logo.jpeg'},
-        {'name': 'Skill Up!', 'country': 'Egypt', 'image': 'images/india.jpg', 'logo': 'images/skillup_logo.jpeg'}
+        {'name': 'Aquatica', 'country': 'Tunisia', 'image': 'images/tunisia.jpg', 'logo': 'images/aquatica_logo.jpeg'},
+        {'name': 'Skill Up!', 'country': 'Egypt', 'image': 'images/egypt.jpg', 'logo': 'images/skillup_logo.jpeg'}
     ],
     'impact': [
-        {'name': 'Global Classroom', 'country': 'Turkiye', 'image': 'images/india.jpg', 'logo': 'images/glologo.jpeg'},
-        {'name': 'Happy Bus', 'country': 'India', 'image': 'images/india.jpg', 'logo': 'images/happybus_logo.jpeg'}
+        {'name': 'Global Classroom', 'country': 'Turkiye', 'image': 'images/turkey.jpg', 'logo': 'images/glologo.jpeg'},
+        {'name': 'Happy Bus', 'country': 'India', 'image': 'images/india.jpeg', 'logo': 'images/happybus_logo.jpeg'}
     ]
 }
 trait_titles = {
@@ -567,12 +567,12 @@ class ResultWindow:
         # Set window size and position
         screen_width = parent.winfo_screenwidth()
         screen_height = parent.winfo_screenheight()
-        window_width = 800
-        window_height = 600
+        window_width = 1000
+        window_height = 752
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
         self.window.geometry(f"{window_width}x{window_height}+{x}+{y}")
-        self.window.resizable(False, False)
+        self.window.resizable(True, True)
 
         # Load images
         self.load_images()
@@ -586,41 +586,47 @@ class ResultWindow:
             # Load background image
             bg_path = Path(self.project['image'])
             original_bg = Image.open(bg_path)
-            self.bg_image = ImageTk.PhotoImage(original_bg.resize((800, 600)))
+            self.bg_image = ImageTk.PhotoImage(original_bg.resize((1000, 752)))
 
             # Load logo image
             logo_path = Path(self.project['logo'])
             original_logo = Image.open(logo_path)
             # Resize logo to be about 30% of window width
-            logo_width = int(800 * 0.3)
+            logo_width = int(600 * 0.3)
             logo_height = int(original_logo.height * (logo_width / original_logo.width))
             self.logo_image = ImageTk.PhotoImage(original_logo.resize((logo_width, logo_height)))
 
         except Exception as e:
             print(f"Error loading images: {e}")
             # Fallback to solid color if images don't exist
-            self.bg_image = ImageTk.PhotoImage(Image.new('RGB', (800, 600), '#0b411c'))
+            self.bg_image = ImageTk.PhotoImage(Image.new('RGB', (1000, 752), '#0b411c'))
             self.logo_image = None
 
     def setup_ui(self):
         """Create all UI elements for the result window"""
         # Create canvas for background
-        self.canvas = tk.Canvas(self.window, width=800, height=600, highlightthickness=0)
+        self.canvas = tk.Canvas(self.window, width=1000, height=752, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
 
         # Add background image
         self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
 
         # Create a semi-transparent overlay using a rectangle with stipple pattern
-        self.canvas.create_rectangle(0, 0, 800, 600, fill="black", stipple="gray25")
+        self.canvas.create_rectangle(0, 0, 1000, 752, fill="black", stipple="gray25")
 
-        # Add project logo in center
+        # Add project logo with better positioning
         if self.logo_image:
-            self.canvas.create_image(400, 200, image=self.logo_image, anchor="center")
+            # Position logo at top-center with some padding
+            self.canvas.create_image(
+                500,  # Center horizontally (window_width/2)
+                165,   # 50 pixels from top
+                image=self.logo_image,
+                anchor="n"  # Anchor at north (top-center)
+            )
 
         # Create a white frame for the text
         text_frame = tk.Frame(self.window, bg="white", bd=2, relief="ridge")
-        text_frame.place(relx=0.5, rely=0.6, anchor="center", width=600, height=200)
+        text_frame.place(relx=0.5, rely=0.6, anchor="center", width=300, height=100)  # Made slightly larger
 
         # Add result text
         title = trait_titles[self.chosen_trait]
@@ -639,33 +645,42 @@ class ResultWindow:
         )
         result_label.pack(expand=True)
 
-        # Add buttons
+        # Add buttons with improved styling
         button_frame = tk.Frame(self.window, bg="")
         button_frame.place(relx=0.5, rely=0.85, anchor="center")
+
+        button_style = {
+            "font": ("Raleway", 12),
+            "width": 15,
+            "bg": "#0b411c",
+            "fg": "white",
+            "activebackground": "#1a6b2d",
+            "activeforeground": "white",
+            "bd": 0,
+            "highlightthickness": 0,
+            "padx": 10,
+            "pady": 5
+        }
 
         restart_btn = tk.Button(
             button_frame,
             text="Start Over",
             command=self.restart_quiz,
-            font=("Raleway", 12),
-            width=15,
-            bg="#0b411c",
-            fg="white"
+            **button_style
         )
-        restart_btn.pack(side="left", padx=10)
-        restart_btn.bind("<Button-1>", lambda e, b=restart_btn: animate_button(b))
+        restart_btn.pack(side="left", padx=15)
+        restart_btn.bind("<Enter>", lambda e: restart_btn.config(bg="#1a6b2d"))
+        restart_btn.bind("<Leave>", lambda e: restart_btn.config(bg="#0b411c"))
 
         menu_btn = tk.Button(
             button_frame,
             text="Main Menu",
             command=self.return_to_menu,
-            font=("Raleway", 12),
-            width=15,
-            bg="#0b411c",
-            fg="white"
+            **button_style
         )
-        menu_btn.pack(side="left", padx=10)
-        menu_btn.bind("<Button-1>", lambda e, b=menu_btn: animate_button(b))
+        menu_btn.pack(side="left", padx=15)
+        menu_btn.bind("<Enter>", lambda e: menu_btn.config(bg="#1a6b2d"))
+        menu_btn.bind("<Leave>", lambda e: menu_btn.config(bg="#0b411c"))
 
     def restart_quiz(self):
         """Restart the quiz"""
@@ -678,8 +693,6 @@ class ResultWindow:
         self.window.destroy()
         if hasattr(self.parent, 'quiz_app'):
             self.parent.quiz_app.return_to_menu()
-
-
 class MusicPlayer:
     def __init__(self):
         self.current_playlist = []
